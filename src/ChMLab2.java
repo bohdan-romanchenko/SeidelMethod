@@ -1,17 +1,24 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class ChMLab2 {
     public static void main(String[] args) {
         // Для считывания воспользуемся классом Scanner
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(new File(args[0]));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
         // Для вывода - классом PrintWriter
         PrintWriter printWriter = new PrintWriter(System.out);
 
         // Считываем размер вводимой матрицы
         int size;
+        assert scanner != null;
         size = scanner.nextInt();
 
         // Будем хранить матрицу в векторе, состоящем из
