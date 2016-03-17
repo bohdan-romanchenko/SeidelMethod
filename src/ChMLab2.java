@@ -4,107 +4,66 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import static java.lang.Math.abs;
+
 public class ChMLab2 {
     public static void main(String[] args) {
-        // Для считывания воспользуемся классом Scanner
-        Scanner scanner = null;
+        Scanner readingFromFile = null;
         try {
-            scanner = new Scanner(new File(args[0]));
+            readingFromFile = new Scanner(new File(args[0]));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        // Для вывода - классом PrintWriter
-        PrintWriter printWriter = new PrintWriter(System.out);
+        PrintWriter writeToFile = new PrintWriter(System.out);
 
-        // Считываем размер вводимой матрицы
-        int size;
-        assert scanner != null;
-        size = scanner.nextInt();
+        assert readingFromFile != null;
+        int countOfRows = readingFromFile.nextInt();
 
-        // Будем хранить матрицу в векторе, состоящем из
-        // векторов вещественных чисел
-        Double[][] matrix = new Double[size][size + 1];
+        Double[][] inArray;
+        inArray = new Double[countOfRows][countOfRows + 1];
 
-        // Матрица будет иметь размер (size) x (size + 1),
-        // c учетом столбца свободных членов        
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size + 1; j++) {
-                matrix[i][j] = scanner.nextDouble();
-            }
-        }
+        for (int i = 0; i < countOfRows; i++)
+            for (int j = 0; j < countOfRows + 1; j++)
+                inArray[i][j] = readingFromFile.nextDouble();
 
-        // Считываем необходимую точность решения
-        double eps;
-        eps = scanner.nextDouble();
+        double allowedError;
+        allowedError = readingFromFile.nextDouble();
 
-        // Введем вектор значений неизвестных на предыдущей итерации,
-        // размер которого равен числу строк в матрице, т.е. size,
-        // причем согласно методу изначально заполняем его нулями
-        Double[] previousVariableValues = new Double[size];
-        for (int i = 0; i < size; i++) {
-            previousVariableValues[i] = 0.0;
-        }
+        Double[] answersVectorPrev;
+        answersVectorPrev = new Double[countOfRows];
+        for (int i = 0; countOfRows > i; i++)
+            answersVectorPrev[i] = 0.0;
 
-        // Будем выполнять итерационный процесс до тех пор,
-        // пока не будет достигнута необходимая точность
         while (true) {
-            // Введем вектор значений неизвестных на текущем шаге
-            Double[] currentVariableValues = new Double[size];
+            Double[] answersVectorCurr = new Double[countOfRows];
+            for (int i = 0; i < countOfRows; i++) {
+                answersVectorCurr[i] = inArray[i][countOfRows];
 
-            // Посчитаем значения неизвестных на текущей итерации
-            // в соответствии с теоретическими формулами
-            for (int i = 0; i < size; i++) {
-                // Инициализируем i-ую неизвестную значением
-                // свободного члена i-ой строки матрицы
-                currentVariableValues[i] = matrix[i][size];
-
-                // Вычитаем сумму по всем отличным от i-ой неизвестным
-                for (int j = 0; j < size; j++) {
-                    // При j < i можем использовать уже посчитанные
-                    // на этой итерации значения неизвестных
-                    if (j < i) {
-                        currentVariableValues[i] -= matrix[i][j] * currentVariableValues[j];
-                    }
-
-                    // При j > i используем значения с прошлой итерации
-                    if (j > i) {
-                        currentVariableValues[i] -= matrix[i][j] * previousVariableValues[j];
-                    }
+                for (int j = 0; j < countOfRows; j++) {
+                    if (j < i)
+                        answersVectorCurr[i] = answersVectorCurr[i] - (inArray[i][j] * answersVectorCurr[j]);
+                    if (j > i)
+                        answersVectorCurr[i] = answersVectorCurr[i] - (inArray[i][j] * answersVectorPrev[j]);
                 }
-
-                // Делим на коэффициент при i-ой неизвестной
-                currentVariableValues[i] /= matrix[i][i];
+                answersVectorCurr[i] = answersVectorCurr[i] / inArray[i][i];
             }
 
-            // Посчитаем текущую погрешность относительно предыдущей итерации
             double error = 0.0;
 
-            for (int i = 0; i < size; i++) {
-                error += Math.abs(currentVariableValues[i] - previousVariableValues[i]);
-            }
+            for (int i = 0; i < countOfRows; i++)
+                error = error + abs(answersVectorCurr[i] - answersVectorPrev[i]);
 
-            // Если необходимая точность достигнута, то завершаем процесс
-            if (error < eps) {
-                break;
-            }
-
-            // Переходим к следующей итерации, так
-            // что текущие значения неизвестных
-            // становятся значениями на предыдущей итерации
-            previousVariableValues = currentVariableValues;
+            if (allowedError <= error) answersVectorPrev = answersVectorCurr;
+            else break;
         }
 
-        // Выводим найденные значения неизвестных
-        for (int i = 0; i < size; i++) {
-            printWriter.print(previousVariableValues[i] + " ");
-        }
+        for (int i = 0; i < countOfRows; i++)
+            writeToFile.print(String.format("%s ", answersVectorPrev[i]));
 
-        // После выполнения программы необходимо закрыть
-        // потоки ввода и вывода
-        System.out.println(Arrays.toString(getResidual(previousVariableValues, matrix, size)));
-        scanner.close();
-        printWriter.close();
+        System.out.println(Arrays.toString(getResidual(answersVectorPrev, inArray, countOfRows)));
+        readingFromFile.close();
+        writeToFile.close();
     }
 
     public static Double[] getResidual(Double[] x, Double[][] inArray, int size){
