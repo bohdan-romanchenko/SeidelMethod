@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class ChMLab2 {
@@ -23,7 +24,7 @@ public class ChMLab2 {
 
         // Будем хранить матрицу в векторе, состоящем из
         // векторов вещественных чисел
-        double[][] matrix = new double[size][size + 1];
+        Double[][] matrix = new Double[size][size + 1];
 
         // Матрица будет иметь размер (size) x (size + 1),
         // c учетом столбца свободных членов        
@@ -40,7 +41,7 @@ public class ChMLab2 {
         // Введем вектор значений неизвестных на предыдущей итерации,
         // размер которого равен числу строк в матрице, т.е. size,
         // причем согласно методу изначально заполняем его нулями
-        double[] previousVariableValues = new double[size];
+        Double[] previousVariableValues = new Double[size];
         for (int i = 0; i < size; i++) {
             previousVariableValues[i] = 0.0;
         }
@@ -49,7 +50,7 @@ public class ChMLab2 {
         // пока не будет достигнута необходимая точность
         while (true) {
             // Введем вектор значений неизвестных на текущем шаге
-            double[] currentVariableValues = new double[size];
+            Double[] currentVariableValues = new Double[size];
 
             // Посчитаем значения неизвестных на текущей итерации
             // в соответствии с теоретическими формулами
@@ -101,7 +102,21 @@ public class ChMLab2 {
 
         // После выполнения программы необходимо закрыть
         // потоки ввода и вывода
+        System.out.println(Arrays.toString(getResidual(previousVariableValues, matrix, size)));
         scanner.close();
         printWriter.close();
+    }
+
+    public static Double[] getResidual(Double[] x, Double[][] inArray, int size){
+        Double[] residual = new Double[size];
+        Double[] AX = new Double[size];
+        for (int i = 0; i < size; i++){
+            AX[i] = 0d;
+            for (int j = 0; j < size; j++)
+                AX[i] += inArray[i][j] * x[j];
+            residual[i] = inArray[i][size] - AX[i];
+        }
+        System.out.println();
+        return residual;
     }
 }
