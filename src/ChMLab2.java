@@ -1,12 +1,30 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 import static java.lang.Math.abs;
 
 public class ChMLab2 {
+
+    private static Double[][] inArray;
+
+    public static Double[] getResidual(Double[] x, Double[][] inArray, int size){
+        Double[] residual = new Double[size];
+        Double[] AX = new Double[size];
+        for (int i = 0; i < size; i++){
+            AX[i] = 0d;
+            for (int j = 0; j < size; j++)
+                AX[i] += inArray[i][j] * x[j];
+            residual[i] = inArray[i][size] - AX[i];
+        }
+        System.out.println();
+        return residual;
+    }
+
     public static void main(String[] args) {
         Scanner readingFromFile = null;
         try {
@@ -20,12 +38,29 @@ public class ChMLab2 {
         assert readingFromFile != null;
         int countOfRows = readingFromFile.nextInt();
 
-        Double[][] inArray;
         inArray = new Double[countOfRows][countOfRows + 1];
 
-        for (int i = 0; i < countOfRows; i++)
-            for (int j = 0; j < countOfRows + 1; j++)
+        System.out.println("Вхідна матриця");
+
+        for (int i = 0; i < countOfRows; i++){
+            for (int j = 0; j < countOfRows + 1; j++){
                 inArray[i][j] = readingFromFile.nextDouble();
+                System.out.print(inArray[i][j] + " ");
+            }
+            System.out.println();
+        }
+
+        if (!isDiagonalDomination(countOfRows))
+        {
+            for (int i = 0; i < countOfRows; i ++){
+                for (int j = 0; j <countOfRows + 1; j++){
+                    System.out.print(inArray[i][j] + " ");
+                }
+                System.out.println();
+            }
+            System.err.println("inputted matrix isn't SOLE or not diagonal");
+            System.exit(0);
+        }
 
         double allowedError;
         allowedError = readingFromFile.nextDouble();
@@ -57,25 +92,38 @@ public class ChMLab2 {
             if (allowedError <= error) answersVectorPrev = answersVectorCurr;
             else break;
         }
-
+        System.out.print("Корені СЛАР : ");
         for (int i = 0; i < countOfRows; i++)
             writeToFile.print(String.format("%s ", answersVectorPrev[i]));
 
-        System.out.println(Arrays.toString(getResidual(answersVectorPrev, inArray, countOfRows)));
+        writeToFile.println("\n\nВектор нев’язку : " + Arrays.toString(getResidual(answersVectorPrev, inArray, countOfRows)));
+
         readingFromFile.close();
         writeToFile.close();
     }
 
-    public static Double[] getResidual(Double[] x, Double[][] inArray, int size){
-        Double[] residual = new Double[size];
-        Double[] AX = new Double[size];
-        for (int i = 0; i < size; i++){
-            AX[i] = 0d;
-            for (int j = 0; j < size; j++)
-                AX[i] += inArray[i][j] * x[j];
-            residual[i] = inArray[i][size] - AX[i];
+    public static Boolean isDiagonalDomination(int size) {
+
+        List<Integer> maxes = new ArrayList<>();
+
+        for (Double[] a : inArray) {
+            int ind = 0;
+            double max = 0;
+
+            for (int i = 0; i < size; i++)
+                if (Math.abs(a[i]) > max) {
+                    ind = i;
+                    max = Math.abs(a[i]);
+                }
+
+            maxes.add(ind);
         }
-        System.out.println();
-        return residual;
+
+        Double[][] tempMatrix = inArray.clone();
+
+        for (int i = 0; i < maxes.size(); i++)
+            inArray[maxes.get(i)] = tempMatrix[i];
+
+        return true;
     }
 }
